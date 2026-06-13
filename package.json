@@ -4,7 +4,8 @@
   "private": true,
   "description": "TREE hurricane-season prediction market prototype with NOAA/NHC live data proxy.",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "netlify:dev": "netlify dev"
   },
   "engines": {
     "node": ">=18"
