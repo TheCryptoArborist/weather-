@@ -1,10 +1,22 @@
 # TREE Hurricane Markets Testing Handoff
 
-This package contains a frontend prototype, a lightweight backend data proxy, and a Sui Move contract prototype for TREE hurricane-season prediction markets.
+This package contains a frontend prototype, a lightweight backend data proxy, Netlify serverless functions, and a Sui Move contract prototype for TREE hurricane-season prediction markets.
+
+## Environment
+
+Do not commit `.env`. Use `.env.example` as the template.
+
+Required for live weather data:
+
+```powershell
+copy .env.example .env
+```
+
+Then edit `WEATHER_USER_AGENT` to a real contact value before production-style testing.
 
 ## Backend + Frontend
 
-Recommended test command:
+Local Node test command:
 
 ```powershell
 npm start
@@ -21,6 +33,15 @@ Backend endpoints:
 - `GET /api/weather/live`
 - `GET /api/markets`
 
+Netlify/serverless test command:
+
+```powershell
+npm install -g netlify-cli
+npm run netlify:dev
+```
+
+The same frontend calls `/api/...`; on Netlify those routes are served by hidden serverless functions in `netlify/functions`.
+
 Live data sources currently proxied:
 - NHC current storms: `https://www.nhc.noaa.gov/CurrentStorms.json`
 - NHC Atlantic outlook XML: `https://www.nhc.noaa.gov/gtwo.xml`
@@ -36,7 +57,7 @@ npm start
 
 ## Frontend
 
-Open `index.html` directly in a browser for static fallback mode, or use `npm start` for live NOAA/NHC-backed mode.
+Open `index.html` directly in a browser for static fallback mode, or use `npm start` / `npm run netlify:dev` for live NOAA/NHC-backed mode.
 
 Files:
 - `index.html`
@@ -44,6 +65,8 @@ Files:
 - `app.js`
 - `server.js`
 - `package.json`
+- `netlify.toml`
+- `netlify/functions/*`
 
 What to test:
 - Desktop layout around 1440x900.
