@@ -1,0 +1,7 @@
+[package]
+name = "tree_hurricane_markets"
+version = "0.0.1"
+edition = "2024.beta"
+
+[addresses]
+tree_hurricane_markets = "0x0"
