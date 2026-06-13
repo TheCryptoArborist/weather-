@@ -1,0 +1,9 @@
+node_modules/
+.env
+.DS_Store
+*.log
+contracts/**/build/
+.edge-profile*/
+.chrome-profile*/
+handoff-*/
+*.zip
