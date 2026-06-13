@@ -48,6 +48,35 @@ Live data sources currently proxied:
 - NWS active alerts: `https://api.weather.gov/alerts/active?area=FL`
 - NOAA CO-OPS latest Key West water level: `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?...`
 
+## Weather API integration
+
+TREE Hurricane Markets uses official public weather data APIs rather than a private weather vendor. The app keeps upstream source selection, request handling, caching, market construction, resolver evidence URLs, and evidence-hash preparation behind backend endpoints.
+
+The frontend should continue to consume only:
+
+```text
+GET /api/weather/live
+GET /api/markets
+```
+
+Primary upstream API sources:
+
+```text
+NWS API documentation:
+https://www.weather.gov/documentation/services-web-api
+
+NHC CurrentStorms JSON:
+https://www.nhc.noaa.gov/CurrentStorms.json
+
+NHC Atlantic Tropical Weather Outlook XML:
+https://www.nhc.noaa.gov/gtwo.xml
+
+NOAA CO-OPS Data Retrieval API:
+https://api.tidesandcurrents.noaa.gov/api/prod/
+```
+
+NWS requests should include an identifiable `WEATHER_USER_AGENT`. For Netlify, set that value as a site environment variable. For local testing, copy `.env.example` to `.env` and replace the placeholder contact value.
+
 Set a real User-Agent for production-style testing:
 
 ```powershell
