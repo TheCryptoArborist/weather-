@@ -1,58 +1,73 @@
-# TREE Hurricane Markets Testing Handoff
+# TREE Hurricane Markets - Mainnet Testing Package
 
-This package contains a frontend prototype, a lightweight backend data proxy, Netlify serverless functions, and a Sui Move contract prototype for TREE hurricane-season prediction markets.
+This folder contains the cleaned launch-testing package:
 
-## Environment
+- Polished frontend app
+- Local Node backend
+- Netlify serverless functions
+- Sui Move prediction-market contract
+- Official live weather data from NOAA/NHC/NWS/CO-OPS
+- NFT-gated trading requirement
 
-Do not commit `.env`. Use `.env.example` as the template.
+## Important launch note
 
-Required for live weather data:
+This is ready for developer testing on Sui mainnet, not audited public production. Use small test amounts until the Move package, resolver flow, and legal/compliance posture are reviewed.
+
+## Local app test
+
+Install Node.js 18+.
 
 ```powershell
 copy .env.example .env
-```
-
-Then edit `WEATHER_USER_AGENT` to a real contact value before production-style testing.
-
-## Backend + Frontend
-
-Local Node test command:
-
-```powershell
 npm start
 ```
 
-Then open:
+Open:
 
 ```text
 http://localhost:8787
 ```
 
-Backend endpoints:
-- `GET /api/health`
-- `GET /api/weather/live`
-- `GET /api/markets`
+Endpoints:
 
-Netlify/serverless test command:
+```text
+GET /api/health
+GET /api/weather/live
+GET /api/markets
+```
+
+## Netlify test
 
 ```powershell
 npm install -g netlify-cli
+copy .env.example .env
 npm run netlify:dev
 ```
 
-The same frontend calls `/api/...`; on Netlify those routes are served by hidden serverless functions in `netlify/functions`.
+On Netlify, set this environment variable:
 
-Live data sources currently proxied:
-- NHC current storms: `https://www.nhc.noaa.gov/CurrentStorms.json`
-- NHC Atlantic outlook XML: `https://www.nhc.noaa.gov/gtwo.xml`
-- NWS active alerts: `https://api.weather.gov/alerts/active?area=FL`
-- NOAA CO-OPS latest Key West water level: `https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?...`
+```text
+WEATHER_USER_AGENT
+```
+
+Use a real contact value. NOAA/NWS APIs expect an identifiable user agent.
+
+## Live data sources
+
+The backend/serverless functions read:
+
+- NHC CurrentStorms JSON
+- NHC Atlantic Tropical Weather Outlook XML
+- NWS active alerts for FL, TX, LA, MS, AL
+- NOAA CO-OPS latest water levels for Key West, Grand Isle, and Galveston
+
+The browser does not contain the market derivation logic. It only calls `/api/markets`.
 
 ## Weather API integration
 
-TREE Hurricane Markets uses official public weather data APIs rather than a private weather vendor. The app keeps upstream source selection, request handling, caching, market construction, resolver evidence URLs, and evidence-hash preparation behind backend endpoints.
-
-The frontend should continue to consume only:
+This package uses official public weather data APIs rather than a private weather vendor.
+The upstream sources are fetched by the local Node backend and the Netlify serverless
+functions, then normalized behind the app's own endpoints:
 
 ```text
 GET /api/weather/live
@@ -75,64 +90,66 @@ NOAA CO-OPS Data Retrieval API:
 https://api.tidesandcurrents.noaa.gov/api/prod/
 ```
 
-NWS requests should include an identifiable `WEATHER_USER_AGENT`. For Netlify, set that value as a site environment variable. For local testing, copy `.env.example` to `.env` and replace the placeholder contact value.
+NWS requests should include an identifiable `WEATHER_USER_AGENT`. For Netlify,
+set that value as a site environment variable. For local testing, copy
+`.env.example` to `.env` and replace the placeholder contact value.
 
-Set a real User-Agent for production-style testing:
+Keep market construction, source selection, caching, resolver evidence URLs, and
+evidence-hash preparation on the backend side. The frontend should continue to
+consume only `/api/markets` and display source evidence returned by that endpoint.
 
-```powershell
-$env:WEATHER_USER_AGENT="tree.example contact@example.com"
-npm start
-```
+## Sui contract
 
-## Frontend
-
-Open `index.html` directly in a browser for static fallback mode, or use `npm start` / `npm run netlify:dev` for live NOAA/NHC-backed mode.
-
-Files:
-- `index.html`
-- `styles.css`
-- `app.js`
-- `server.js`
-- `package.json`
-- `netlify.toml`
-- `netlify/functions/*`
-
-What to test:
-- Desktop layout around 1440x900.
-- Mobile layout around 390x844.
-- NFT access messaging is visible in the wallet/status area and trade panel.
-- Live source status changes from static fallback to live sources when served through the backend.
-- Resolution evidence displays source/status links from `/api/markets`.
-- Market selection updates the detail panel.
-- `All`, `Short term`, and `Season outlook` filters update the market list.
-- Yes/No outcome selection updates the trade button and share estimate.
-- Amount input and quick amount buttons update the trade summary.
-
-## Contract
-
-Contract package:
+Build:
 
 ```powershell
 cd contracts/tree_hurricane_markets
 sui move build
 ```
 
-Primary source file:
-- `contracts/tree_hurricane_markets/sources/prediction_market.move`
+Publish to mainnet testing wallet:
 
-What the contract currently supports:
-- NFT-gated market access using the required NFTree collection type.
-- Resolver-submitted market resolution with source evidence.
-- Admin-created binary prediction markets.
-- SUI-based Yes/No positions.
-- Expiry-based admin resolution.
-- Winner claims paid pro rata from the losing side.
-- A configurable fee retained in the registry impact fund.
-- Impact-fund withdrawal by admin.
+```powershell
+sui client switch --env mainnet
+sui client publish --gas-budget 100000000
+```
 
-NFT gate:
-- Required collection type shown externally: `0xf6c6d439ea0da2f3e9ba79e4992a7a4c113215fbf54c442ac9020c315f953705::collection::NFT`
-- The contract stores the Sui `std::type_name` form without the `0x` prefix: `f6c6d439ea0da2f3e9ba79e4992a7a4c113215fbf54c442ac9020c315f953705::collection::NFT`
-- `buy_position<AccessNFT>` requires a borrowed NFT object of that exact type. A wallet must include one of those NFT objects in the transaction to open a position.
+Primary module:
 
-Important note: this is a prototype contract for testing architecture and flow. It has not been audited and should not be used with real funds without legal/compliance review and a security audit.
+```text
+tree_hurricane_markets::prediction_market
+```
+
+The contract uses SUI for test market positions.
+
+## NFT gate
+
+Configured collection type:
+
+```text
+f6c6d439ea0da2f3e9ba79e4992a7a4c113215fbf54c442ac9020c315f953705::collection::NFT
+```
+
+Users must pass a borrowed NFT object of that type into `buy_position<AccessNFT>`.
+
+## Main entry functions
+
+- `create_market`
+- `buy_position<AccessNFT>`
+- `resolve_market`
+- `claim_to_sender`
+- `withdraw_impact_fund`
+- `set_required_nft_type`
+
+## Recommended testing checklist
+
+1. Run `sui move build`.
+2. Publish from a fresh admin wallet.
+3. Save the package ID, shared `Registry`, `AdminCap`, and `ResolverCap`.
+4. Create one short-term market with a small expiry.
+5. Buy YES and NO positions from wallets holding the required NFT.
+6. Resolve after expiry with the NOAA/NHC evidence URL and an evidence hash.
+7. Claim from the winning position.
+8. Confirm losing positions cannot claim.
+9. Confirm wallets without the NFT cannot buy.
+10. Confirm impact fund withdrawal only works for admin.
