@@ -8,239 +8,192 @@
   </head>
   <body>
     <div class="app-shell">
-      <aside class="sidebar">
+      <aside class="rail" aria-label="Application navigation">
         <div class="brand">
-          <div class="brand-mark" aria-hidden="true">
-            <span></span>
-          </div>
+          <div class="brand-mark" aria-hidden="true">T</div>
           <div>
             <strong>TREE</strong>
-            <small>Hurricane Markets</small>
+            <span>Hurricane Markets</span>
           </div>
         </div>
 
-        <nav class="side-nav" aria-label="Primary">
-          <button class="active" type="button" data-view="markets">Markets</button>
-          <button type="button" data-view="dashboard">Dashboard</button>
-          <button type="button" data-view="portfolio">Portfolio</button>
-          <button type="button" data-view="activity">Activity</button>
-          <button type="button" data-view="analytics">Analytics</button>
-          <button type="button" data-view="leaderboard">Leaderboard</button>
+        <nav class="nav-list">
+          <button class="active" type="button">Markets</button>
+          <button type="button">Portfolio</button>
+          <button type="button">Activity</button>
+          <button type="button">Resolution</button>
         </nav>
 
-        <div class="network-card">
-          <span>Built on Sui</span>
-          <div><small>Network</small><strong>Sui Mainnet</strong></div>
-          <div><small>TVL</small><strong>$2,450,321</strong></div>
+        <div class="rail-card">
+          <span class="label">Network</span>
+          <strong>Sui Mainnet</strong>
+          <p>Testing package. Use small amounts until audited.</p>
         </div>
 
-        <div class="wallet-card">
-          <div class="avatar">T</div>
-          <div>
-            <strong>0xTree...Sui</strong>
-            <small>NFT access verified</small>
-          </div>
+        <div class="rail-card">
+          <span class="label">NFT required</span>
+          <strong>NFTree collection</strong>
+          <p>Trading requires the configured collection object type.</p>
         </div>
       </aside>
 
       <main class="workspace">
-        <section class="market-list" aria-label="Active prediction markets">
-          <header>
-            <h1>Active markets</h1>
-            <button class="icon-button" type="button" aria-label="Refresh markets">R</button>
-          </header>
-
-          <div class="tabs" role="tablist" aria-label="Market filters">
-            <button class="tab active" type="button" data-filter="all">All</button>
-            <button class="tab" type="button" data-filter="short">Short term</button>
-            <button class="tab" type="button" data-filter="season">Season outlook</button>
+        <header class="topbar">
+          <div>
+            <h1>TREE Hurricane Markets</h1>
+            <p>Live hurricane-season prediction markets with official NOAA/NHC source evidence.</p>
           </div>
-
-          <div class="market-items" id="marketItems"></div>
-
-          <button class="all-markets" type="button">View all markets</button>
-          <p class="note">All markets are binary Yes/No. 1 TREE = 1 share.</p>
-        </section>
-
-        <section class="market-detail">
-          <header class="topbar">
-            <div class="impact-pill">
-              <span>T</span>
+          <div class="top-actions">
+            <div class="source-chip">
+              <span id="sourceDot" class="dot pending"></span>
               <div>
-                <strong>Impact</strong>
-                <small>Real-world funding</small>
+                <strong id="sourceStatus">Loading sources</strong>
+                <span id="sourceUpdated">Checking NOAA/NHC</span>
               </div>
             </div>
-            <div class="season-total">
-              <strong>$183,450</strong>
-              <small>Deployed this season</small>
-            </div>
-            <div class="access-pill">
-              <strong>NFTree Access</strong>
-              <small>Required to trade</small>
-            </div>
-            <div class="source-pill">
-              <strong id="sourceStatus">Static fallback</strong>
-              <small id="sourceUpdated">Run backend for live NOAA/NHC data</small>
-            </div>
-            <button class="ghost-button" type="button">Learn more</button>
-            <button class="icon-button" type="button" aria-label="Notifications">~</button>
-            <button class="icon-button" type="button" aria-label="Theme">*</button>
-          </header>
-
-          <div class="radar-hero">
-            <div class="radar-map" aria-hidden="true">
-              <span class="city houston">Houston</span>
-              <span class="city miami">Miami</span>
-              <span class="radar-band"></span>
-              <span class="storm-core">X</span>
-            </div>
-            <aside>
-              <div class="storm-heading">
-                <strong>Disturbance 1</strong>
-                <span>20%</span>
-              </div>
-              <p>As of 8:00 AM EDT</p>
-              <dl>
-                <div><dt>Movement</dt><dd>W at 15 mph</dd></div>
-                <div><dt>Pressure</dt><dd>1010 mb</dd></div>
-                <div><dt>Formation chance</dt><dd>20% Low</dd></div>
-              </dl>
-              <small>Source: NOAA/NHC</small>
-            </aside>
+            <button class="wallet-button" type="button" id="connectWallet">Connect wallet</button>
           </div>
+        </header>
 
-          <div class="content-grid">
-            <article class="forecast-panel">
-              <div class="detail-heading">
-                <div class="market-icon" id="detailIcon">CY</div>
-                <div>
-                  <h2 id="detailTitle">Current disturbance becomes named storm</h2>
-                  <p id="detailQuestion">Will the current disturbance become a named storm?</p>
-                </div>
-                <div class="heading-actions">
-                  <button class="icon-button" type="button" aria-label="Watch market">*</button>
-                  <button class="icon-button" type="button" aria-label="Share market">^</button>
-                </div>
-              </div>
-
-              <div class="meta-row">
-                <span id="detailCategory">Short term</span>
-                <span id="detailExpiry">Expires in 5d 14h</span>
-                <span>Source: NOAA/NHC</span>
-              </div>
-
-              <div class="chart-card">
-                <div class="chart-head">
-                  <div>
-                    <small>Market forecast</small>
-                    <strong id="detailProbability">58% Yes</strong>
-                  </div>
-                  <select id="rangeSelect" aria-label="Chart range">
-                    <option>7D</option>
-                    <option>30D</option>
-                    <option>Season</option>
-                  </select>
-                </div>
-                <div class="chart" aria-label="Forecast price history">
-                  <svg viewBox="0 0 760 220" role="img" aria-label="Market forecast chart">
-                    <defs>
-                      <linearGradient id="areaFill" x1="0" x2="0" y1="0" y2="1">
-                        <stop offset="0%" stop-color="#2e8f43" stop-opacity="0.22" />
-                        <stop offset="100%" stop-color="#2e8f43" stop-opacity="0" />
-                      </linearGradient>
-                    </defs>
-                    <path class="grid-line" d="M0 40H760M0 95H760M0 150H760M0 205H760" />
-                    <path id="chartArea" class="chart-area" d=""></path>
-                    <path id="chartLine" class="chart-line" d=""></path>
-                  </svg>
-                </div>
-                <div class="stats-row">
-                  <div><strong id="detailVolume">$18,342</strong><small>Total volume</small></div>
-                  <div><strong id="tradeCount">1,846</strong><small>Total trades</small></div>
-                  <div><strong>1.2 TREE</strong><small>Avg. trade size</small></div>
-                  <div><strong class="positive">+8%</strong><small>24h change</small></div>
-                </div>
-              </div>
-
-              <div class="resolution-card">
-                <div>
-                  <strong>Resolution</strong>
-                  <p id="detailResolution">Resolves Yes if NOAA/NHC names the current disturbance as a tropical cyclone before the listed expiry.</p>
-                </div>
-                <div>
-                  <strong>Resolved by</strong>
-                  <p>Chainlink + UMA Optimistic Oracle</p>
-                </div>
-                <div>
-                  <strong>Resolution source</strong>
-                  <p>NOAA/NHC official advisory</p>
-                </div>
-              </div>
-
-              <div class="evidence-card">
-                <strong>Resolution evidence</strong>
-                <div id="sourceEvidence">
-                  <strong>Pending</strong>
-                  <span>NOAA/NHC source evidence will appear here.</span>
-                </div>
-              </div>
-            </article>
-
-            <aside class="trade-panel" aria-label="Trade panel">
-              <div class="trade-tabs">
-                <button class="active" type="button">Trade</button>
-                <button type="button">Commit</button>
-              </div>
-
-              <label>Outcome</label>
-              <div class="outcomes">
-                <button class="selected" type="button" data-side="yes">Yes <span id="yesPrice">58c</span></button>
-                <button type="button" data-side="no">No <span id="noPrice">42c</span></button>
-              </div>
-
-              <label for="amountInput">Amount</label>
-              <div class="amount-field">
-                <input id="amountInput" type="number" min="1" value="10" />
-                <span>TREE</span>
-              </div>
-              <small class="balance">Balance: 12,450 TREE</small>
-
-              <div class="quick-amounts">
-                <button type="button" data-amount="25">25%</button>
-                <button type="button" data-amount="50">50%</button>
-                <button type="button" data-amount="75">75%</button>
-                <button type="button" data-amount="100">Max</button>
-              </div>
-
-              <div class="trade-summary">
-                <div><span>Shares you receive</span><strong id="sharesOut">17.241</strong></div>
-                <div><span>Est. fee</span><strong>0.035 TREE</strong></div>
-                <div><span>Est. total</span><strong id="totalOut">10.035 TREE</strong></div>
-              </div>
-
-              <button class="primary-action" type="button" id="buyButton">Buy Yes</button>
-              <button class="secondary-action" type="button">Buy No</button>
-              <p class="risk-note">By trading, you agree to the terms and acknowledge the risks.</p>
-              <div class="access-note">
-                <strong>NFT-gated market</strong>
-                <p>Trading requires holding an NFT from collection <span>0xf6c6...::collection::NFT</span>.</p>
-              </div>
-            </aside>
-          </div>
-
-          <section class="impact-strip">
-            <div class="tree-badge">T</div>
-            <div>
-              <strong>Real-world impact</strong>
-              <p>A portion of trading fees funds storm preparedness and recovery.</p>
-            </div>
-            <a href="#" aria-label="View funded projects">View funded projects</a>
-            <div><strong>$183,450</strong><small>Deployed</small></div>
-            <div><strong>18</strong><small>Projects funded</small></div>
-            <div><strong>7</strong><small>Organizations</small></div>
-          </section>
+        <section class="live-strip" aria-label="Live weather source summary">
+          <article>
+            <span class="label">Active storms</span>
+            <strong id="activeStorms">--</strong>
+            <small>NHC CurrentStorms</small>
+          </article>
+          <article>
+            <span class="label">Formation chance</span>
+            <strong id="formationChance">--</strong>
+            <small>Atlantic outlook max</small>
+          </article>
+          <article>
+            <span class="label">Coastal alerts</span>
+            <strong id="alertCount">--</strong>
+            <small>NWS Gulf states</small>
+          </article>
+          <article>
+            <span class="label">Water level</span>
+            <strong id="waterLevel">--</strong>
+            <small>NOAA CO-OPS</small>
+          </article>
         </section>
+
+        <div class="market-layout">
+          <section class="market-list" aria-label="Prediction markets">
+            <div class="section-head">
+              <div>
+                <h2>Markets</h2>
+                <p>Short-term and season-long hurricane outcomes.</p>
+              </div>
+              <button class="icon-button" id="refreshButton" type="button" aria-label="Refresh markets">R</button>
+            </div>
+
+            <div class="tabs" role="tablist" aria-label="Market filters">
+              <button class="active" type="button" data-filter="all">All</button>
+              <button type="button" data-filter="short">Short term</button>
+              <button type="button" data-filter="season">Season</button>
+            </div>
+
+            <div class="market-items" id="marketItems"></div>
+          </section>
+
+          <section class="market-detail" aria-label="Selected market">
+            <div class="detail-card">
+              <div class="detail-heading">
+                <div class="market-icon" id="detailIcon">API</div>
+                <div>
+                  <span id="detailCategory" class="label">Short term</span>
+                  <h2 id="detailTitle">Loading live market</h2>
+                  <p id="detailQuestion">Start the backend to load official NOAA/NHC-backed markets.</p>
+                </div>
+              </div>
+
+              <div class="price-row">
+                <div>
+                  <span class="label">YES probability</span>
+                  <strong id="detailProbability">50%</strong>
+                </div>
+                <div>
+                  <span class="label">Expires</span>
+                  <strong id="detailExpiry">Backend required</strong>
+                </div>
+                <div>
+                  <span class="label">Volume</span>
+                  <strong id="detailVolume">0 SUI</strong>
+                </div>
+              </div>
+
+              <div class="chart-panel">
+                <div class="chart-head">
+                  <span class="label">Market forecast</span>
+                  <strong id="chartPrice">50c YES</strong>
+                </div>
+                <svg viewBox="0 0 760 220" role="img" aria-label="Forecast chart">
+                  <defs>
+                    <linearGradient id="areaFill" x1="0" x2="0" y1="0" y2="1">
+                      <stop offset="0%" stop-color="#0e9f6e" stop-opacity="0.24" />
+                      <stop offset="100%" stop-color="#0e9f6e" stop-opacity="0" />
+                    </linearGradient>
+                  </defs>
+                  <path class="grid-line" d="M0 42H760M0 96H760M0 150H760M0 204H760" />
+                  <path id="chartArea" class="chart-area" d=""></path>
+                  <path id="chartLine" class="chart-line" d=""></path>
+                </svg>
+              </div>
+
+              <div class="resolution-grid">
+                <article>
+                  <span class="label">Resolution rule</span>
+                  <p id="detailResolution">Official source evidence is served from the backend.</p>
+                </article>
+                <article>
+                  <span class="label">Evidence</span>
+                  <div id="sourceEvidence" class="evidence-line">Pending NOAA/NHC source evidence.</div>
+                </article>
+              </div>
+            </div>
+          </section>
+
+          <aside class="trade-ticket" aria-label="Trade ticket">
+            <div class="ticket-head">
+              <h2>Trade</h2>
+              <span>SUI</span>
+            </div>
+
+            <label>Outcome</label>
+            <div class="outcomes">
+              <button class="selected" type="button" data-side="yes">YES <span id="yesPrice">50c</span></button>
+              <button type="button" data-side="no">NO <span id="noPrice">50c</span></button>
+            </div>
+
+            <label for="amountInput">Amount</label>
+            <div class="amount-field">
+              <input id="amountInput" type="number" min="0.01" step="0.01" value="1" />
+              <span>SUI</span>
+            </div>
+
+            <div class="quick-amounts">
+              <button type="button" data-amount="0.5">0.5</button>
+              <button type="button" data-amount="1">1</button>
+              <button type="button" data-amount="5">5</button>
+              <button type="button" data-amount="10">10</button>
+            </div>
+
+            <div class="summary">
+              <div><span>Shares</span><strong id="sharesOut">2.000</strong></div>
+              <div><span>Protocol fee</span><strong id="feeOut">0.010 SUI</strong></div>
+              <div><span>Total</span><strong id="totalOut">1.010 SUI</strong></div>
+            </div>
+
+            <button class="primary-action" type="button" id="buyButton">Buy YES</button>
+            <p class="fine-print">Requires Sui wallet approval and an NFT from the configured collection.</p>
+
+            <div class="nft-box">
+              <span class="label">Access collection</span>
+              <code>0xf6c6...::collection::NFT</code>
+            </div>
+          </aside>
+        </div>
       </main>
     </div>
 
