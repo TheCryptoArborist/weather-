@@ -1,11 +1,14 @@
 {
-  "name": "tree-hurricane-markets",
-  "version": "0.1.0",
+  "name": "tree-hurricane-markets-mainnet-testing",
+  "version": "1.0.0",
   "private": true,
-  "description": "TREE hurricane-season prediction market prototype with NOAA/NHC live data proxy.",
+  "type": "module",
+  "description": "TREE Hurricane Markets mainnet testing package with Sui Move contract, Netlify functions, and live NOAA/NHC data.",
   "scripts": {
-    "start": "node server.js",
-    "netlify:dev": "netlify dev"
+    "start": "node server.mjs",
+    "netlify:dev": "netlify dev",
+    "check:contract": "cd contracts/tree_hurricane_markets && sui move build",
+    "check:server": "node --check server.mjs"
   },
   "engines": {
     "node": ">=18"
