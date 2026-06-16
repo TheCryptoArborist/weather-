@@ -22,6 +22,19 @@ module tree_hurricane_markets::prediction_market {
     const E_ALREADY_CLAIMED: u64 = 9;
     const E_NO_WINNING_STAKE: u64 = 10;
     const E_NFT_REQUIRED: u64 = 11;
+    const E_NOT_POSITION_OWNER: u64 = 12;
+    const E_INVALID_FEE: u64 = 13;
+    const E_INVALID_TEXT: u64 = 14;
+    const E_INVALID_EVIDENCE: u64 = 15;
+    const E_INVALID_TIMESTAMP: u64 = 16;
+    const E_INVALID_WITHDRAWAL: u64 = 17;
+
+    const BPS_DENOMINATOR: u64 = 10000;
+    const MAX_FEE_BPS: u64 = 1000;
+    const MAX_QUESTION_BYTES: u64 = 280;
+    const MAX_CATEGORY_BYTES: u64 = 64;
+    const MAX_URL_BYTES: u64 = 512;
+    const MAX_EVIDENCE_HASH_BYTES: u64 = 128;
 
     const NFTREE_TYPE_NO_PREFIX: vector<u8> =
         b"f6c6d439ea0da2f3e9ba79e4992a7a4c113215fbf54c442ac9020c315f953705::collection::NFT";
@@ -113,7 +126,26 @@ module tree_hurricane_markets::prediction_market {
         nft_type.as_string().as_bytes() == &registry.required_nft_type
     }
 
-    public fun create_market(
+    fun assert_non_empty_limited(bytes: &vector<u8>, max_length: u64) {
+        let length = bytes.length();
+        assert!(length > 0 && length <= max_length, E_INVALID_TEXT);
+    }
+
+    fun assert_evidence_limited(bytes: &vector<u8>, max_length: u64) {
+        let length = bytes.length();
+        assert!(length > 0 && length <= max_length, E_INVALID_EVIDENCE);
+    }
+
+    fun fee_amount(stake_value: u64, fee_bps: u64): u64 {
+        assert!(fee_bps <= MAX_FEE_BPS, E_INVALID_FEE);
+        (((stake_value as u128) * (fee_bps as u128) / (BPS_DENOMINATOR as u128)) as u64)
+    }
+
+    fun pro_rata_amount(pool_value: u64, stake_value: u64, winning_pool: u64): u64 {
+        (((pool_value as u128) * (stake_value as u128) / (winning_pool as u128)) as u64)
+    }
+
+    public entry fun create_market(
         _: &AdminCap,
         registry: &mut Registry,
         question: vector<u8>,
@@ -125,6 +157,9 @@ module tree_hurricane_markets::prediction_market {
     ) {
         assert!(tx_context::sender(ctx) == registry.admin, E_NOT_ADMIN);
         assert!(expiry_ms > clock::timestamp_ms(clock), E_MARKET_CLOSED);
+        assert_non_empty_limited(&question, MAX_QUESTION_BYTES);
+        assert_non_empty_limited(&category, MAX_CATEGORY_BYTES);
+        assert_non_empty_limited(&resolution_source, MAX_URL_BYTES);
 
         let market_key = object::new(ctx);
         let market_id = object::uid_to_inner(&market_key);
@@ -144,13 +179,10 @@ module tree_hurricane_markets::prediction_market {
             source_timestamp_ms: 0,
         });
 
-        event::emit(MarketCreated {
-            market_id,
-            expiry_ms,
-        });
+        event::emit(MarketCreated { market_id, expiry_ms });
     }
 
-    public fun buy_position<AccessNFT: key>(
+    public fun open_position<AccessNFT: key>(
         registry: &mut Registry,
         market_id: ID,
         outcome_yes: bool,
@@ -169,9 +201,10 @@ module tree_hurricane_markets::prediction_market {
         assert!(clock::timestamp_ms(clock) < market.expiry_ms, E_MARKET_CLOSED);
 
         let mut stake = coin::into_balance(payment);
-        let fee = balance::split(&mut stake, stake_value * registry.fee_bps / 10000);
+        let fee = balance::split(&mut stake, fee_amount(stake_value, registry.fee_bps));
         balance::join(&mut registry.impact_fund, fee);
         let net_stake = balance::value(&stake);
+        assert!(net_stake > 0, E_INVALID_STAKE);
 
         if (outcome_yes) {
             balance::join(&mut market.yes_pool, stake);
@@ -194,13 +227,26 @@ module tree_hurricane_markets::prediction_market {
             market_id,
             owner: tx_context::sender(ctx),
             outcome_yes,
-            stake: position.stake,
+            stake: net_stake,
         });
 
         position
     }
 
-    public fun resolve_market(
+    public entry fun buy_position<AccessNFT: key>(
+        registry: &mut Registry,
+        market_id: ID,
+        outcome_yes: bool,
+        access_nft: &AccessNFT,
+        payment: Coin<SUI>,
+        clock: &Clock,
+        ctx: &mut TxContext,
+    ) {
+        let position = open_position<AccessNFT>(registry, market_id, outcome_yes, access_nft, payment, clock, ctx);
+        transfer::transfer(position, tx_context::sender(ctx));
+    }
+
+    public entry fun resolve_market(
         _: &ResolverCap,
         registry: &mut Registry,
         market_id: ID,
@@ -215,6 +261,9 @@ module tree_hurricane_markets::prediction_market {
         let market = table::borrow_mut(&mut registry.markets, market_id);
         assert!(!market.resolved, E_MARKET_RESOLVED);
         assert!(clock::timestamp_ms(clock) >= market.expiry_ms, E_MARKET_NOT_EXPIRED);
+        assert_evidence_limited(&evidence_url, MAX_URL_BYTES);
+        assert_evidence_limited(&evidence_hash, MAX_EVIDENCE_HASH_BYTES);
+        assert!(source_timestamp_ms > 0 && source_timestamp_ms <= clock::timestamp_ms(clock), E_INVALID_TIMESTAMP);
 
         market.resolved = true;
         market.outcome_yes = outcome_yes;
@@ -230,7 +279,7 @@ module tree_hurricane_markets::prediction_market {
         position: &mut Position,
         ctx: &mut TxContext,
     ): Coin<SUI> {
-        assert!(position.owner == tx_context::sender(ctx), E_NOT_ADMIN);
+        assert!(position.owner == tx_context::sender(ctx), E_NOT_POSITION_OWNER);
         assert!(!position.claimed, E_ALREADY_CLAIMED);
         assert!(table::contains(&registry.markets, position.market_id), E_INVALID_MARKET);
 
@@ -252,7 +301,7 @@ module tree_hurricane_markets::prediction_market {
         };
 
         let stake_value = position.stake;
-        let bonus = losing_pool * stake_value / winning_pool;
+        let bonus = pro_rata_amount(losing_pool, stake_value, winning_pool);
 
         let mut payout_balance = if (market.outcome_yes) {
             balance::split(&mut market.yes_pool, stake_value)
@@ -279,7 +328,16 @@ module tree_hurricane_markets::prediction_market {
         coin::from_balance(payout_balance, ctx)
     }
 
-    public fun withdraw_impact_fund(
+    public entry fun claim_to_sender(
+        registry: &mut Registry,
+        position: &mut Position,
+        ctx: &mut TxContext,
+    ) {
+        let payout = claim(registry, position, ctx);
+        transfer::public_transfer(payout, tx_context::sender(ctx));
+    }
+
+    public entry fun withdraw_impact_fund(
         _: &AdminCap,
         registry: &mut Registry,
         amount: u64,
@@ -287,17 +345,19 @@ module tree_hurricane_markets::prediction_market {
         ctx: &mut TxContext,
     ) {
         assert!(tx_context::sender(ctx) == registry.admin, E_NOT_ADMIN);
+        assert!(amount > 0 && amount <= balance::value(&registry.impact_fund), E_INVALID_WITHDRAWAL);
         let withdrawal = balance::split(&mut registry.impact_fund, amount);
         transfer::public_transfer(coin::from_balance(withdrawal, ctx), recipient);
     }
 
-    public fun set_required_nft_type(
+    public entry fun set_required_nft_type(
         _: &AdminCap,
         registry: &mut Registry,
         required_nft_type_no_prefix: vector<u8>,
         ctx: &mut TxContext,
     ) {
         assert!(tx_context::sender(ctx) == registry.admin, E_NOT_ADMIN);
+        assert_non_empty_limited(&required_nft_type_no_prefix, MAX_URL_BYTES);
         registry.required_nft_type = required_nft_type_no_prefix;
     }
 }
