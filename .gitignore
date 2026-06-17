@@ -11,3 +11,4 @@ handoff-*/
 *.zip
 .netlify/
 dist/
+data/auto-created-markets.json
