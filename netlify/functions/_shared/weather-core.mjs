@@ -137,6 +137,16 @@ function daysUntil(monthIndex, day) {
   return Math.ceil((target.getTime() - now.getTime()) / 86400000);
 }
 
+function easternDeadlineMs(monthIndex, day) {
+  const year = new Date().getUTCFullYear();
+  const utcHour = monthIndex >= 2 && monthIndex <= 9 ? 3 : 4;
+  return Date.UTC(year, monthIndex, day + 1, utcHour, 59, 59, 999);
+}
+
+function rollingExpiryMs(days) {
+  return Date.now() + days * 24 * 60 * 60 * 1000;
+}
+
 function buildPoints(probability, variation = 6) {
   const points = [];
   for (let index = 0; index < 13; index += 1) {
@@ -173,6 +183,7 @@ function buildMarkets(live) {
       volume: `${(260 + disturbanceNamed * 8).toFixed(0)} SUI`,
       trades: String(70 + disturbanceNamed * 4),
       expires: "7-day window",
+      expiryMs: rollingExpiryMs(7),
       resolution: "Resolves YES if NOAA/NHC names a new Atlantic tropical cyclone within the stated 7-day window.",
       source: "NHC Tropical Weather Outlook",
       points: buildPoints(disturbanceNamed),
@@ -194,6 +205,7 @@ function buildMarkets(live) {
       volume: `${(310 + nextBeforeJuly * 7).toFixed(0)} SUI`,
       trades: String(90 + nextBeforeJuly * 3),
       expires: "July 1",
+      expiryMs: easternDeadlineMs(6, 1),
       resolution: "Resolves YES if NOAA/NHC lists a new Atlantic named storm before 11:59 PM ET on July 1.",
       source: "NHC CurrentStorms",
       points: buildPoints(nextBeforeJuly, 5),
@@ -215,6 +227,7 @@ function buildMarkets(live) {
       volume: `${(410 + gulfBeforeAugust * 9).toFixed(0)} SUI`,
       trades: String(120 + gulfBeforeAugust * 4),
       expires: "August 1",
+      expiryMs: easternDeadlineMs(7, 1),
       resolution: "Resolves YES if NOAA/NHC reports a Category 1 or stronger Atlantic hurricane entering the Gulf before August 1.",
       source: "NHC advisories",
       points: buildPoints(gulfBeforeAugust, 4),
@@ -236,6 +249,7 @@ function buildMarkets(live) {
       volume: `${(520 + seasonOverTen * 10).toFixed(0)} SUI`,
       trades: String(160 + seasonOverTen * 4),
       expires: "November 30",
+      expiryMs: easternDeadlineMs(10, 30),
       resolution: "Resolves YES if NOAA's post-season Atlantic tropical cyclone report lists 11 or more named storms.",
       source: "NOAA/NHC season report",
       points: buildPoints(seasonOverTen, 3),
