@@ -19,6 +19,7 @@ let markets = [...fallbackMarkets];
 let selectedMarketId = markets[0].id;
 let activeFilter = "all";
 let selectedSide = "yes";
+let tradeNoticeTimer = null;
 
 const elements = {
   marketItems: document.querySelector("#marketItems"),
@@ -157,6 +158,18 @@ function updateTradeSummary() {
   elements.buyButton.textContent = `Buy ${selectedSide.toUpperCase()}`;
 }
 
+function showTradeNotice() {
+  window.clearTimeout(tradeNoticeTimer);
+  const originalLabel = `Buy ${selectedSide.toUpperCase()}`;
+  elements.buyButton.textContent = "Wallet trading pending";
+  elements.sourceEvidence.innerHTML =
+    "Frontend wallet trading is not connected yet. Mainnet contract testing was completed by Sui CLI; the next build step is wiring wallet approval to the live package.";
+  tradeNoticeTimer = window.setTimeout(() => {
+    elements.buyButton.textContent = originalLabel;
+    renderDetail();
+  }, 5000);
+}
+
 document.addEventListener("click", (event) => {
   const marketButton = event.target.closest("[data-market]");
   if (marketButton) {
@@ -186,6 +199,7 @@ document.addEventListener("click", (event) => {
   }
 
   if (event.target.closest("#refreshButton")) loadLiveMarkets();
+  if (event.target.closest("#buyButton")) showTradeNotice();
   if (event.target.closest("#connectWallet")) {
     event.target.textContent = "Wallet pending";
   }
