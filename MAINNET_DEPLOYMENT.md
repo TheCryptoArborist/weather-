@@ -86,6 +86,7 @@ Impact-fund withdrawal test coin:
 
 Pending before public release:
 
+- Decide whether the four backend-derived market templates should be opened manually or by the operator auto-create script in `scripts/auto-create-markets.mjs`.
 - Non-admin impact-fund withdrawal rejection test from a separate CLI-managed wallet.
 - Wallet-connected frontend trading flow.
 - Resolver operations policy and evidence-hash procedure.
