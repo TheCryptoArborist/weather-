@@ -122,6 +122,46 @@ tree_hurricane_markets::prediction_market
 
 The contract uses SUI for test market positions.
 
+## Mainnet deployment
+
+The current developer smoke-test deployment is documented in:
+
+```text
+MAINNET_DEPLOYMENT.md
+```
+
+Live Sui mainnet IDs:
+
+```text
+Package:
+0xbdb34ef1f0ede6535473fa2078447da608e0c9f24e284aff350bf546168b92c7
+
+Registry:
+0xccfc95482df353eae478ab5d3cf3e28ccb3e1d74c029a36ed53f8f935450d262
+
+AdminCap:
+0x7f7b99e28804438802f76bfdbd714dbae5c92166b6fc02b9314327ac3bbdfecb
+
+ResolverCap:
+0xb872f897196a800f7927546926764e81f5d251cda5cb45a7cf93b8ded7741021
+
+UpgradeCap:
+0x7a51c25fc804e33812879902f57390a111d03b2601acbed601a5d05635fc8804
+```
+
+Mainnet smoke-test status:
+
+```text
+Market creation: passed
+NFT-gated YES buy: passed
+NFT-gated NO buy: passed
+Resolve market: passed
+Winning claim: passed
+Losing claim rejection: passed
+Admin impact-fund withdrawal: passed
+Non-admin impact-fund withdrawal rejection: pending separate CLI-managed wallet
+```
+
 ## NFT gate
 
 Configured collection type:
@@ -143,13 +183,13 @@ Users must pass a borrowed NFT object of that type into `buy_position<AccessNFT>
 
 ## Recommended testing checklist
 
-1. Run `sui move build`.
-2. Publish from a fresh admin wallet.
-3. Save the package ID, shared `Registry`, `AdminCap`, and `ResolverCap`.
-4. Create one short-term market with a small expiry.
-5. Buy YES and NO positions from wallets holding the required NFT.
-6. Resolve after expiry with the NOAA/NHC evidence URL and an evidence hash.
-7. Claim from the winning position.
-8. Confirm losing positions cannot claim.
-9. Confirm wallets without the NFT cannot buy.
-10. Confirm impact fund withdrawal only works for admin.
+1. Run `sui move build`. Completed on developer machine.
+2. Publish from a fresh admin wallet. Completed on Sui mainnet.
+3. Save the package ID, shared `Registry`, `AdminCap`, and `ResolverCap`. Completed in `MAINNET_DEPLOYMENT.md`.
+4. Create one short-term market with a small expiry. Completed.
+5. Buy YES and NO positions from wallets holding the required NFT. Completed.
+6. Resolve after expiry with the NOAA/NHC evidence URL and an evidence hash. Completed.
+7. Claim from the winning position. Completed.
+8. Confirm losing positions cannot claim. Completed.
+9. Confirm wallets without the NFT cannot buy. Pending separate wallet test.
+10. Confirm impact fund withdrawal only works for admin. Admin path completed; non-admin rejection pending separate wallet test.
