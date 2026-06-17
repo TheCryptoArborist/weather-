@@ -63,11 +63,43 @@ The backend/serverless functions read:
 
 The browser does not contain the market derivation logic. It only calls `/api/markets`.
 
+## Auto-create Sui markets
+
+The package now includes an operator-side market creation helper. It reads the same backend-generated `/api/markets` templates, prepares the on-chain market questions/categories/source URLs/expiry timestamps, and creates any market that has not already been recorded in the local creation manifest.
+
+Dry-run the current plan first:
+
+```powershell
+npm run markets:plan
+```
+
+Create the planned markets from the active Sui CLI wallet:
+
+```powershell
+npm run markets:create
+```
+
+Requirements:
+
+- Run this only from the admin wallet that owns the configured `AdminCap`.
+- Keep the generated `data/auto-created-markets.json` manifest. It prevents duplicate auto-created markets for the same template window.
+- This is intentionally an operator script, not public frontend code. The browser should never hold the admin capability or create markets directly.
+- Netlify can display market templates and live data, but on-chain market creation should run from a trusted machine or scheduled operator process with the Sui CLI installed and the admin wallet active.
+
+Relevant environment variables:
+
+```text
+SUI_PACKAGE_ID
+SUI_REGISTRY_ID
+SUI_ADMIN_CAP_ID
+SUI_CLOCK_ID
+MARKET_CREATE_GAS_BUDGET
+MARKET_AUTOCREATE_MANIFEST
+```
+
 ## Weather API integration
 
-This package uses official public weather data APIs rather than a private weather vendor.
-The upstream sources are fetched by the local Node backend and the Netlify serverless
-functions, then normalized behind the app's own endpoints:
+This package uses official public weather data APIs rather than a private weather vendor. The upstream sources are fetched by the local Node backend and the Netlify serverless functions, then normalized behind the app's own endpoints:
 
 ```text
 GET /api/weather/live
@@ -90,13 +122,9 @@ NOAA CO-OPS Data Retrieval API:
 https://api.tidesandcurrents.noaa.gov/api/prod/
 ```
 
-NWS requests should include an identifiable `WEATHER_USER_AGENT`. For Netlify,
-set that value as a site environment variable. For local testing, copy
-`.env.example` to `.env` and replace the placeholder contact value.
+NWS requests should include an identifiable `WEATHER_USER_AGENT`. For Netlify, set that value as a site environment variable. For local testing, copy `.env.example` to `.env` and replace the placeholder contact value.
 
-Keep market construction, source selection, caching, resolver evidence URLs, and
-evidence-hash preparation on the backend side. The frontend should continue to
-consume only `/api/markets` and display source evidence returned by that endpoint.
+Keep market construction, source selection, caching, resolver evidence URLs, and evidence-hash preparation on the backend side. The frontend should continue to consume only `/api/markets` and display source evidence returned by that endpoint.
 
 ## Sui contract
 
